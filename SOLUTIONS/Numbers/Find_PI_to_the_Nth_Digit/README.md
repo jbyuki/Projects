@@ -8,4 +8,4 @@ Improvements include:
 * Use a more sophisticated method to compute Pi
 * Optimize the Ofloat.h utility
 
-![pi 1000 digits](https://raw.githubusercontent.com/jbyuki/Projects/raw/master/SOLUTIONS/Numbers/Find_PI_to_the_Nth_Digit/first_1000_digits.PNG)
+![pi 1000 digits](https://raw.githubusercontent.com/jbyuki/Projects/master/SOLUTIONS/Numbers/Find_PI_to_the_Nth_Digit/first_1000_digits.PNG)
