@@ -3,6 +3,9 @@ set(CMAKE_CXX_STANDARD 11)
 project(app)
 
 add_executable(app WIN32
+	vec2.h
+	parser.cpp
+	parser.h
 	main.cpp)
 
 target_link_libraries(app ws2_32)

@@ -46,7 +46,7 @@ wc.lpszMenuName = szMenu;
 RegisterClass(&wc);
 
 @global_variables+=
-char szTitle[] = "Window Desktop Guided Tour Application";
+char szTitle[] = "Calculator v0.1";
 
 @create_window=
 HWND hWnd = CreateWindow(
@@ -163,6 +163,9 @@ case 300: { // font settings
 	InvalidateRect(hWnd, NULL, FALSE);
 
 	break; }
+case 203: // close
+	PostQuitMessage(0);
+	break;
 default:
 	break;
 }
@@ -259,21 +262,6 @@ for(size_t i=gap_end; i<gap_buffer.size(); ++i) {
 #include <sstream>
 #include <algorithm>
 
-@init_resources+=
-std::ostringstream oss;
-oss << "Calculator v0.1" << std::endl;
-oss << "---------------" << std::endl;
-oss << std::endl;
-oss << "* VIM-like" << std::endl;
-oss << "* " << std::endl;
-oss << std::endl;
-oss << "By jbyuki";
-
-std::string init_s = oss.str();
-gap_start = init_s.size();
-
-std::copy(init_s.begin(), init_s.end(), gap_buffer.begin());
-
 @handle_keydown_message=
 switch(wParam) {
 @handle_keydown_press
@@ -285,7 +273,7 @@ InvalidateRect(hWnd, NULL, TRUE);
 @text_manipulation=
 auto move_left() -> void
 {
-	if(gap_start > 0) {
+	if(gap_start > 0 && gap_buffer[gap_start-1] != '\n') {
 		gap_buffer[gap_end-1] = gap_buffer[gap_start-1];
 		gap_start--;
 		gap_end--;
@@ -300,7 +288,7 @@ case VK_LEFT:
 @text_manipulation+=
 auto move_right() -> void
 {
-	if(gap_end < gap_buffer.size()) {
+	if(gap_end < gap_buffer.size() && gap_buffer[gap_end] != '\n') {
 		gap_buffer[gap_start] = gap_buffer[gap_end];
 		gap_start++;
 		gap_end++;
@@ -313,37 +301,10 @@ case VK_RIGHT:
 	break;
 
 @handle_keydown_press+=
-case VK_UP: {
-	for(;;) {
-		move_left();
-
-		if(gap_start == 0 || gap_buffer[gap_start] == '\n') {
-			break;
-		}
-	}
-	break;
-}
-
-@handle_keydown_press+=
-case VK_DOWN: {
-	for(;;) {
-		move_right();
-
-		if(gap_end == gap_buffer.size() || gap_buffer[gap_end-1] == '\n') {
-			break;
-		}
-	}
-	break;
-}
-
-@handle_keydown_press+=
 case VK_BACK:
 	if(gap_start > 0) {
 		gap_start--;
 	}
-	break;
-case VK_RETURN:
-	gap_buffer[gap_start++] = '\n';
 	break;
 
 @handle_char_message=
@@ -351,3 +312,50 @@ if(wParam >= 0x20 && wParam <= 0x7E) {
 	gap_buffer[gap_start++] = (char)wParam;
 }
 InvalidateRect(hWnd, NULL, TRUE);
+
+@includes+=
+#include "parser.h"
+
+@global_variables+=
+Parser parser;
+
+@handle_keydown_press+=
+case VK_RETURN: {
+	@extract_expression
+	@parse_expression
+	@print_result
+	break; }
+
+@extract_expression=
+size_t s=0;
+for(size_t i=gap_start;i>0; --i) {
+	if(gap_buffer[i-1] == '\n') {
+		s = i;
+		break;
+	}
+}
+std::string input(gap_buffer.begin()+s, gap_buffer.begin()+gap_start);
+
+@parse_expression=
+auto exp = parser.process(input);
+
+@includes+=
+#include <cstdio>
+
+@print_result=
+char result[128];
+strcpy(result, "Syntax error!");
+
+if(exp) {
+	sprintf(result, "%g", exp->eval());
+}
+
+gap_buffer[gap_start++] = '\n';
+gap_buffer[gap_start++] = ' ';
+gap_buffer[gap_start++] = '=';
+gap_buffer[gap_start++] = ' ';
+
+for(int i=0; i<128 && result[i]; ++i) {
+	gap_buffer[gap_start++] = result[i];
+}
+gap_buffer[gap_start++] = '\n';

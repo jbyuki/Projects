@@ -12,11 +12,15 @@
 #include <sstream>
 #include <algorithm>
 
+#include "parser.h"
+
+#include <cstdio>
+
 
 char szWindowClass[] = "DesktopApp";
 char szMenu[] = "MainMenu";
 
-char szTitle[] = "Window Desktop Guided Tour Application";
+char szTitle[] = "Calculator v0.1";
 
 LOGFONT lf;
 DWORD rgbCurrent;
@@ -30,10 +34,12 @@ Vec2i start(5, 5);
 const LONG CURSOR_WIDTH = 2;
 HBRUSH white_brush;
 
+Parser parser;
+
 
 auto move_left() -> void
 {
-	if(gap_start > 0) {
+	if(gap_start > 0 && gap_buffer[gap_start-1] != '\n') {
 		gap_buffer[gap_end-1] = gap_buffer[gap_start-1];
 		gap_start--;
 		gap_end--;
@@ -42,7 +48,7 @@ auto move_left() -> void
 
 auto move_right() -> void
 {
-	if(gap_end < gap_buffer.size()) {
+	if(gap_end < gap_buffer.size() && gap_buffer[gap_end] != '\n') {
 		gap_buffer[gap_start] = gap_buffer[gap_end];
 		gap_start++;
 		gap_end++;
@@ -158,6 +164,9 @@ auto CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> 
 				InvalidateRect(hWnd, NULL, FALSE);
 			
 				break; }
+			case 203: // close
+				PostQuitMessage(0);
+				break;
 			default:
 				break;
 			}
@@ -178,36 +187,41 @@ auto CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> 
 			move_right();
 			break;
 		
-		case VK_UP: {
-			for(;;) {
-				move_left();
-		
-				if(gap_start == 0 || gap_buffer[gap_start] == '\n') {
-					break;
-				}
-			}
-			break;
-		}
-		
-		case VK_DOWN: {
-			for(;;) {
-				move_right();
-		
-				if(gap_end == gap_buffer.size() || gap_buffer[gap_end-1] == '\n') {
-					break;
-				}
-			}
-			break;
-		}
-		
 		case VK_BACK:
 			if(gap_start > 0) {
 				gap_start--;
 			}
 			break;
-		case VK_RETURN:
+		
+		case VK_RETURN: {
+			size_t s=0;
+			for(size_t i=gap_start;i>0; --i) {
+				if(gap_buffer[i-1] == '\n') {
+					s = i;
+					break;
+				}
+			}
+			std::string input(gap_buffer.begin()+s, gap_buffer.begin()+gap_start);
+			
+			auto exp = parser.process(input);
+			
+			char result[128];
+			strcpy(result, "Syntax error!");
+			
+			if(exp) {
+				sprintf(result, "%g", exp->eval());
+			}
+			
 			gap_buffer[gap_start++] = '\n';
-			break;
+			gap_buffer[gap_start++] = ' ';
+			gap_buffer[gap_start++] = '=';
+			gap_buffer[gap_start++] = ' ';
+			
+			for(int i=0; i<128 && result[i]; ++i) {
+				gap_buffer[gap_start++] = result[i];
+			}
+			gap_buffer[gap_start++] = '\n';
+			break; }
 		
 		default:
 			break;
@@ -220,6 +234,7 @@ auto CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> 
 			gap_buffer[gap_start++] = (char)wParam;
 		}
 		InvalidateRect(hWnd, NULL, TRUE);
+		
 		break; }
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
@@ -263,20 +278,6 @@ auto CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	
 
 	white_brush = CreateSolidBrush(RGB(0, 0, 0));
-	
-	std::ostringstream oss;
-	oss << "Calculator v0.1" << std::endl;
-	oss << "---------------" << std::endl;
-	oss << std::endl;
-	oss << "* VIM-like" << std::endl;
-	oss << "* " << std::endl;
-	oss << std::endl;
-	oss << "By jbyuki";
-	
-	std::string init_s = oss.str();
-	gap_start = init_s.size();
-	
-	std::copy(init_s.begin(), init_s.end(), gap_buffer.begin());
 	
 
 	ShowWindow(hWnd, nCmdShow);
