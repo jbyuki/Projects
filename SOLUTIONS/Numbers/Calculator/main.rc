@@ -1,0 +1,15 @@
+MainMenu MENU
+{
+     POPUP "File"
+	 {
+          MENUITEM "New", 200
+          MENUITEM "Open", 201
+          MENUITEM "Save", 202
+          MENUITEM "Close", 203
+	 }
+
+     POPUP "Settings"
+     {
+          MENUITEM "Font...", 300
+     }
+}
