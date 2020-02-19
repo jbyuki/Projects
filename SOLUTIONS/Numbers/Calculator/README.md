@@ -8,4 +8,4 @@ Additional improvments can be made:
 * Cursor navigation to previous results to reuse same expression
 * Variable assignements
 
-![1000 fib](https://raw.githubusercontent.com/jbyuki/Projects/master/SOLUTIONS/Numbers/Calculator/Capture.PNG)
+![Calculator](https://raw.githubusercontent.com/jbyuki/Projects/master/SOLUTIONS/Numbers/Calculator/Capture.PNG)
