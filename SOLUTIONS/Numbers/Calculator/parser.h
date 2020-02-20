@@ -210,7 +210,7 @@ struct LParToken : Token
 		return exp;
 	}
 	
-	auto priority() -> int override { return 100; }
+	auto priority() -> int override { return 20; }
 	
 	
 	auto infix(Parser* p, std::shared_ptr<Expression> left) -> std::shared_ptr<Expression> override
