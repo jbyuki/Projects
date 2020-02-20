@@ -1,7 +1,7 @@
 @desc=
 "The idea is to decompose the exponent in base-2."
 "Then compute the number raised to every base-2 that's needed (number^1, number^2, number^4,...)."
-"Using the base-2 decomposition, add the results from the table."
+"Using the base-2 decomposition, multiply the results from the table."
 
 @*=
 @includes
